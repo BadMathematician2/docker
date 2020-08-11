@@ -1,0 +1,44 @@
+version: '3'
+services:
+    ubuntu:
+        image: ubuntu
+        command: >
+                bash -c "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install software-properties-common -y &&
+                apt-get install php7.4-curl -y && apt-get install php7.4-xml -y && apt-get install php7.4-gd -y && apt-get install php7.4-zip -y"
+    php:
+        image: php:7.4            
+        links: 
+            - mysql
+        volumes: 
+            - ./php/7.4:/etc/php/7.4/apache2 
+    mysql:
+        image: mysql
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+        volumes: 
+            - ./mysql:/var/lib/mysql
+        ports: 
+            - "3406:3306"
+    redis:
+        image: redis
+        ports: 
+            - "6479:6379"
+        environment:
+            REDIS_PASSWORD: ${REDIS_PASSWORD}
+    nginx:
+        image: nginx
+        ports:
+            - "81:80"
+            - "8180:8080"
+            - "453:443"
+        volumes:
+            - ./hosts:/etc/nginx/conf.d
+            - ./www:/var/www
+            - ./logs:/var/log/nginx
+        links:
+            - mysql
+    smtp:
+        image: namshi/smtp
+        ports:
+            - "2525:2525"
